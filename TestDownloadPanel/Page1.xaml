@@ -1,0 +1,29 @@
+﻿<Page x:Class="TestDownloadPanel.Page1"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:TestDownloadPanel"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="Page1" Background="White">
+
+    <Grid>
+        <ComboBox x:Name="ProfileComboBox" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="200"/>
+        <Button Content="Добавить профиль" HorizontalAlignment="Left" Margin="220,10,0,0" VerticalAlignment="Top" Width="120" Click="AddProfileButton_Click"/>
+        <Button Content="Играть" HorizontalAlignment="Left" Margin="220,50,0,0" VerticalAlignment="Top" Width="120" Click="PlayButton_Click"/>
+        <ProgressBar x:Name="ProgressBar" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Width="330" Height="20"/>
+        <Label x:Name="Output" Content="OutPut" Margin="0,130"/>
+        <!-- Скрытый Grid для ввода данных профиля -->
+        <Grid x:Name="ProfileInputGrid" Visibility="Collapsed" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <TextBox x:Name="ProfileNameTextBox" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Margin="0,50,0,0"/>
+            <ComboBox x:Name="LoaderTypeComboBox" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Margin="0,100,0,0">
+                <ComboBoxItem Content="Vanilla"/>
+                <ComboBoxItem Content="Forge"/>
+                <ComboBoxItem Content="Fabric"/>
+            </ComboBox>
+            <Button Content="Создать" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" Margin="0,150,0,0" Click="CreateProfileButton_Click"/>
+            <Button Content="Отмена" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" Margin="0,200,0,0" Click="CancelProfileButton_Click"/>
+        </Grid>
+    </Grid>
+</Page>
