@@ -1,14 +1,16 @@
 ﻿using CmlLib.Core;
 using CmlLib.Core.Auth;
+using CmlLib.Core.Auth.Microsoft.Sessions;
 using CmlLib.Core.Installer.Forge;
 using CmlLib.Core.ModLoaders.FabricMC;
 using CmlLib.Core.ProcessBuilder;
+using CmlLib.Core.VersionMetadata;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -16,170 +18,122 @@ namespace TestDownloadPanel
 {
     public partial class Page1 : Page
     {
-        private const string ProfilesFolderPath = "Profiles";
-        private List<Profile> _profiles = new List<Profile>();
-
+        private string profilesFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles.json");
         public Page1()
         {
             InitializeComponent();
             LoadProfiles();
-            ProfileComboBox.SelectedIndex = 0;
         }
-
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            ProfileInputGrid.Visibility = Visibility.Visible;
+            ProfileGrid.Visibility = Visibility.Visible;
         }
 
-        private void CreateProfileButton_Click(object sender, RoutedEventArgs e)
+        private void SaveProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            var profileName = ProfileNameTextBox.Text;
-            var loaderType = (LoaderTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
-            //Создание профиля
-            if (!string.IsNullOrWhiteSpace(profileName) && !string.IsNullOrWhiteSpace(loaderType))
+            string profileName = ProfileNameTextBox.Text;
+            string loader = (LoaderComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
+
+            if (string.IsNullOrEmpty(profileName) || string.IsNullOrEmpty(loader))
             {
-                var profile = new Profile { Name = profileName, LoaderType = loaderType };
-                _profiles.Add(profile);
-                Directory.CreateDirectory(Path.Combine(ProfilesFolderPath, profileName));
-                ProfileComboBox.Items.Add($"{profile.Name} ({profile.LoaderType})");
-                SaveProfiles();
-
-                ProfileInputGrid.Visibility = Visibility.Collapsed;
-                ProfileNameTextBox.Clear();
-                LoaderTypeComboBox.SelectedIndex = -1;
+                MessageBox.Show("Пожалуйста, введите имя профиля и выберите загрузчик модов.");
+                return;
             }
-        }
 
-        private void CancelProfileButton_Click(object sender, RoutedEventArgs e)
-        {
-            ProfileInputGrid.Visibility = Visibility.Collapsed;
-            ProfileNameTextBox.Clear();
-            LoaderTypeComboBox.SelectedIndex = -1;
+            var profile = new { Name = profileName, Loader = loader, Version = "1.19.4" };
+
+            List<dynamic> profiles;
+            if (File.Exists(profilesFilePath))
+            {
+                string json = File.ReadAllText(profilesFilePath);
+                profiles = JsonConvert.DeserializeObject<List<dynamic>>(json) ?? new List<dynamic>();
+            }
+            else
+            {
+                profiles = new List<dynamic>();
+            }
+
+            profiles.Add(profile);
+            File.WriteAllText(profilesFilePath, JsonConvert.SerializeObject(profiles, Formatting.Indented));
+
+            MessageBox.Show("Профиль сохранен!");
+            ProfileGrid.Visibility = Visibility.Collapsed;
+            LoadProfiles();
         }
 
         private void LoadProfiles()
         {
-            try
+            if (File.Exists(profilesFilePath))
             {
-                if (File.Exists(Path.Combine(ProfilesFolderPath, "profiles.json")))
-                {
-                    var json = File.ReadAllText(Path.Combine(ProfilesFolderPath, "profiles.json"));
-                    _profiles = JsonConvert.DeserializeObject<List<Profile>>(json) ?? new List<Profile>();
-
-                    foreach (var profile in _profiles)
-                    {
-                        ProfileComboBox.Items.Add($"{profile.Name} ({profile.LoaderType})");
-                    }
-                }
-                else if (Directory.Exists(ProfilesFolderPath))
-                {
-                    var profileDirs = Directory.GetDirectories(ProfilesFolderPath);
-                    foreach (var dir in profileDirs)
-                    {
-                        var profileName = Path.GetFileName(dir);
-                        _profiles.Add(new Profile { Name = profileName });
-                        ProfileComboBox.Items.Add(profileName);
-                    }
-                }
+                string json = File.ReadAllText(profilesFilePath);
+                var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json) ?? new List<dynamic>();
+                ProfilesComboBox.ItemsSource = profiles.Select(p => (string)p.Name).ToList();
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Не удалось загрузить профили. {ex.Message}");
-            }
-        }
-
-        private void SaveProfiles()
-        {
-            var json = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
-            File.WriteAllText(Path.Combine(ProfilesFolderPath, "profiles.json"), json);
         }
 
         private async void PlayButton_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (ProfilesComboBox.SelectedItem != null)
             {
-                var selectedProfileName = ProfileComboBox.SelectedItem?.ToString();
-                if (string.IsNullOrWhiteSpace(selectedProfileName))
+                string selectedProfile = ProfilesComboBox.SelectedItem.ToString();
+                string json = File.ReadAllText(profilesFilePath);
+                var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json);
+                var profile = profiles.FirstOrDefault(p => p.Name == selectedProfile);
+
+                if (profile != null)
                 {
-                    return;
-                }
+                    string version = profile.Vesrion;
+                    string loader = profile.Loader;
 
-                var profile = _profiles.Find(p => p.Name == selectedProfileName);
-                if (profile == null)
-                {
-                    return;
-                }
+                    string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles", selectedProfile);
+                    var minecraftPath = new MinecraftPath(path);
+                    var launcher = new MinecraftLauncher(minecraftPath);
 
-                var profilePath = Path.Combine(ProfilesFolderPath, selectedProfileName);
-                var minecraftPath = new MinecraftPath();
-                var launcher = new MinecraftLauncher(minecraftPath);
+                    launcher.FileProgressChanged += (s, a) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            DownloadProgressBar.Value = a.ProgressedTasks;
+                        });
+                    };
 
+                    var launchOption = new MLaunchOption
+                    {
+                        Session = MSession.CreateOfflineSession("Laun4er"),
+                        MaximumRamMb = 2048
+                    };
 
-                var launchOption = new MLaunchOption
-                {
-                    Session = MSession.CreateOfflineSession("Laun4er"), // Заменить мой ник на локальное значение из бдшки
-                    MaximumRamMb = 2048 // Внести локальное значение ОЗУ из бдшки
-                };
-
-                switch (profile.LoaderType)
-                {
-                    case "Vanilla":
-                        await UpdateProgressAsync(async () =>
+                    if(loader == "Fabric")
+                    {
+                        var fabricInstaller = new FabricInstaller(new System.Net.Http.HttpClient());
+                        var fabricVer = await fabricInstaller.Install("1.19.4", minecraftPath);
+                        var fabricProcess = await launcher.CreateProcessAsync(fabricVer, launchOption);
+                        fabricProcess.Start();
+                    }
+                    else if (loader == "Forge")
+                    {
+                        var forgeInstaller = new ForgeInstaller(launcher);
+                        var forgeVer = await forgeInstaller.Install("1.19.4", new ForgeInstallOptions
                         {
                             
-                            var process = await launcher.CreateProcessAsync("1.19.4", launchOption);
-                            process.Start();
                         });
-                        break;
-                    case "Forge":
-                        await UpdateProgressAsync(async () =>
-                        {
-                            var forgeInstaller = new ForgeInstaller(launcher);
-                            var verNameForge = await forgeInstaller.Install("1.19.4");
-                            var forgeProcess = await launcher.CreateProcessAsync(verNameForge, launchOption);
-                            forgeProcess.Start();
-                        });
-                        break;
-                    case "Fabric":
-                        await UpdateProgressAsync(async () =>
-                        {
-                            var fabricInstaller = new FabricInstaller(new HttpClient());
-                            var verName = await fabricInstaller.Install("1.19.4", minecraftPath);
-                            var fabricProcess = await launcher.CreateProcessAsync(verName, launchOption);
-                            fabricProcess.Start();
-                        });
-                        break;
+
+                        var forgeProcess = await launcher.CreateProcessAsync(forgeVer, launchOption);
+                        forgeProcess.Start();
+                        
+                    }
+                    else if (loader == "Vanilla")
+                    {
+                        await launcher.InstallAsync("1.19.4");
+                        var vanillaProcess = await launcher.CreateProcessAsync("1.19.4", launchOption);
+                        vanillaProcess.Start();
+                    }
                 }
             }
-            catch (Exception ex)
+            else
             {
-                MessageBox.Show($"Не удалось запустить игру {ex.Message}");
+                MessageBox.Show("Пожалуйста, выберите профиль для игры.");
             }
         }
-
-        private async Task UpdateProgressAsync(Func<Task> action)
-        {
-            for (int i = 0; i <= 100; i += 20)
-            {
-                await Task.Delay(100); //ОБЯЗАТЕЛЬНО СДЕЛАТЬ НОРМАЛЬНЫЙ ПРОГРЕСС БАР
-                ProgressBar.Value = i;
-            }
-            await action();
-            ProgressBar.Value = 0;
-            ProgressBar.Visibility = Visibility.Collapsed;
-        }
-
-        private void ProfileComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // Обработчик комбо за 159 рублей
-        }
-    }
-
-    public class Profile
-    {
-        public string Name { get; set; }
-        public string LoaderType { get; set; }
     }
 }
-
-

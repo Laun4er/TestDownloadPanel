@@ -7,23 +7,31 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Page1" Background="White">
-
     <Grid>
-        <ComboBox x:Name="ProfileComboBox" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="200"/>
-        <Button Content="Добавить профиль" HorizontalAlignment="Left" Margin="220,10,0,0" VerticalAlignment="Top" Width="120" Click="AddProfileButton_Click"/>
-        <Button Content="Играть" HorizontalAlignment="Left" Margin="220,50,0,0" VerticalAlignment="Top" Width="120" Click="PlayButton_Click"/>
-        <ProgressBar x:Name="ProgressBar" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Width="330" Height="20"/>
-        <Label x:Name="Output" Content="OutPut" Margin="0,130"/>
-        <!-- Скрытый Grid для ввода данных профиля -->
-        <Grid x:Name="ProfileInputGrid" Visibility="Collapsed" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <TextBox x:Name="ProfileNameTextBox" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Margin="0,50,0,0"/>
-            <ComboBox x:Name="LoaderTypeComboBox" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Margin="0,100,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel>
+        <Button Content="Добавить профиль" Width="150" Height="30" Click="AddProfileButton_Click"/>
+        <ComboBox Name="ProfilesComboBox" Width="200" Margin="10" Grid.Row="0"/>
+        <Button Content="Играть" Width="150" Height="30" Click="PlayButton_Click" Grid.Row="0" Margin="10, 0, 0, 0"/>
+            <ProgressBar Name="DownloadProgressBar" Width="200" Height="30" Grid.Row="0"/>
+        </StackPanel>
+        <Grid Name="ProfileGrid" Visibility="Collapsed" Grid.Row="1">
+            <StackPanel>
+            <TextBox Name="ProfileNameTextBox" Width="200" Margin="10"/>
+            <ComboBox Name="LoaderComboBox" Width="200" Margin="10">
                 <ComboBoxItem Content="Vanilla"/>
-                <ComboBoxItem Content="Forge"/>
                 <ComboBoxItem Content="Fabric"/>
+                <ComboBoxItem Content="Forge"/>
             </ComboBox>
-            <Button Content="Создать" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" Margin="0,150,0,0" Click="CreateProfileButton_Click"/>
-            <Button Content="Отмена" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" Margin="0,200,0,0" Click="CancelProfileButton_Click"/>
+            <Button Content="Сохранить профиль" Width="150" Height="30" Click="SaveProfileButton_Click"/>
+            </StackPanel>
         </Grid>
+
+
+        
     </Grid>
+
 </Page>
