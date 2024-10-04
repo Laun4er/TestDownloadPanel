@@ -16,7 +16,11 @@
         <Button Content="Добавить профиль" Width="150" Height="30" Click="AddProfileButton_Click"/>
         <ComboBox Name="ProfilesComboBox" Width="200" Margin="10" Grid.Row="0"/>
         <Button Content="Играть" Width="150" Height="30" Click="PlayButton_Click" Grid.Row="0" Margin="10, 0, 0, 0"/>
-            <ProgressBar Name="DownloadProgressBar" Width="200" Height="30" Grid.Row="0"/>
+        <ProgressBar Name="DownloadProgressBar" Width="200" Height="30" Grid.Row="0"/>
+            <DockPanel HorizontalAlignment="Center">
+                <Button Content="Удалить" Width="150" Height="30" Click="DeleteProfileButton_Click"/>
+                <Button Content="Открыть" Width="150" Height="30" Click="OpenProfileButton_Click"/>
+            </DockPanel>  
         </StackPanel>
         <Grid Name="ProfileGrid" Visibility="Collapsed" Grid.Row="1">
             <StackPanel>

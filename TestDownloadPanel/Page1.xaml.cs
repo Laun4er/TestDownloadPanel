@@ -1,14 +1,11 @@
 ﻿using CmlLib.Core;
 using CmlLib.Core.Auth;
-using CmlLib.Core.Auth.Microsoft.Sessions;
 using CmlLib.Core.Installer.Forge;
 using CmlLib.Core.ModLoaders.FabricMC;
 using CmlLib.Core.ProcessBuilder;
-using CmlLib.Core.VersionMetadata;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -33,6 +30,7 @@ namespace TestDownloadPanel
         {
             string profileName = ProfileNameTextBox.Text;
             string loader = (LoaderComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
+            
 
             if (string.IsNullOrEmpty(profileName) || string.IsNullOrEmpty(loader))
             {
@@ -54,9 +52,9 @@ namespace TestDownloadPanel
             }
 
             profiles.Add(profile);
+            
             File.WriteAllText(profilesFilePath, JsonConvert.SerializeObject(profiles, Formatting.Indented));
 
-            MessageBox.Show("Профиль сохранен!");
             ProfileGrid.Visibility = Visibility.Collapsed;
             LoadProfiles();
         }
@@ -66,8 +64,61 @@ namespace TestDownloadPanel
             if (File.Exists(profilesFilePath))
             {
                 string json = File.ReadAllText(profilesFilePath);
-                var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json) ?? new List<dynamic>();
-                ProfilesComboBox.ItemsSource = profiles.Select(p => (string)p.Name).ToList();
+                var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json);
+                ProfilesComboBox.ItemsSource = profiles.Select(p => $"{p.Name} ({p.Loader})").ToList();
+            }
+        }
+
+        private void DeleteProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProfilesComboBox.SelectedItem != null)
+            {
+                string selectedProfile = ProfilesComboBox.SelectedItem.ToString();
+
+                string json = File.ReadAllText(profilesFilePath);
+                var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json);
+                profiles.RemoveAll(p => p.Name == selectedProfile);
+                File.WriteAllText(profilesFilePath, JsonConvert.SerializeObject(profiles, Formatting.Indented));
+
+                string profilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles", selectedProfile);
+                if (Directory.Exists(profilePath))
+                {
+                    Directory.Delete(profilePath, true);
+                }
+                LoadProfiles();
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, выберите профиль для удаления.");
+            }
+        }
+
+        private void OpenProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProfilesComboBox.SelectedItem != null)
+            {
+                string selectedItem = ProfilesComboBox.SelectedItem.ToString();
+                string selectedProfile = selectedItem.Split('(')[0].Trim(); 
+
+                string profilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles", selectedProfile);
+
+                if (Directory.Exists(profilePath))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = profilePath,
+                        UseShellExecute = true,
+                        Verb = "open"
+                    });
+                }
+                else
+                {
+                    MessageBox.Show("Папка профиля не найдена.");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, выберите профиль для открытия.");
             }
         }
 
@@ -125,7 +176,10 @@ namespace TestDownloadPanel
                     else if (loader == "Vanilla")
                     {
                         await launcher.InstallAsync("1.19.4");
-                        var vanillaProcess = await launcher.CreateProcessAsync("1.19.4", launchOption);
+                        var vanillaProcess = await launcher.CreateProcessAsync("1.19.4", new MLaunchOption
+                        {
+                            VersionType = "release"
+                        });
                         vanillaProcess.Start();
                     }
                 }
