@@ -15,6 +15,14 @@ namespace TestDownloadPanel
 
             pageFrame.Content = pages["Main"];
         }
+
+        public void ShowDownloadPanel()
+        {
+            if (DownloadGrid.Visibility == Visibility.Collapsed)
+            {
+                DownloadGrid.Visibility = Visibility.Visible;
+            }
+        }
         private void ShowDownloadsButton_Click(object sender, RoutedEventArgs e)
         {
             if(DownloadGrid.Visibility == Visibility.Visible)

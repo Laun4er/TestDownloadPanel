@@ -15,12 +15,14 @@ namespace TestDownloadPanel
     public partial class Page1 : Page
     {
         private MainWindow mainWindow;
+        private Dictionary<string, bool> downloadInProgress = new Dictionary<string, bool>();
 
         private string profilesFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles.json");
         public Page1(MainWindow mainWindow)
         {
             InitializeComponent();
             this.mainWindow = mainWindow;
+            ProfilesComboBox.SelectedIndex = 0;
             LoadProfiles();
         }
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
@@ -128,10 +130,16 @@ namespace TestDownloadPanel
         {
             if (ProfilesComboBox.SelectedItem != null)
             {
+                
                 string selectedItem = ProfilesComboBox.SelectedItem.ToString();
                 string selectedProfile = selectedItem.Split('(')[0].Trim();
                 string loaderType = selectedItem.Split('(', ')')[1].Trim();
-        
+
+                if (downloadInProgress.ContainsKey(selectedProfile) && downloadInProgress[selectedProfile])
+                {
+                    MessageBox.Show("Загрузка этого профиля уже выполняется.");
+                    return;
+                }
 
                 string json = File.ReadAllText(profilesFilePath);
                 var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json);
@@ -139,6 +147,7 @@ namespace TestDownloadPanel
 
                 if (profile != null)
                 {
+                    downloadInProgress[selectedProfile] = true;
                     string version = profile.Vesrion;
                     string loader = profile.Loader;
 
@@ -149,6 +158,7 @@ namespace TestDownloadPanel
                     var launcher = new MinecraftLauncher(minecraftPath);
 
                     mainWindow.AddDownloadStatus(selectedProfile);
+                    mainWindow.ShowDownloadPanel();
 
                     launcher.ByteProgressChanged += (s, a) =>
                     {
@@ -192,6 +202,7 @@ namespace TestDownloadPanel
                     }
 
                     mainWindow.RemoveDownloadStatus(selectedProfile);
+                    downloadInProgress[selectedProfile] = false;
                 }
             }
             else
