@@ -16,7 +16,6 @@ namespace TestDownloadPanel
     {
         private MainWindow mainWindow;
         private Dictionary<string, bool> downloadInProgress = new Dictionary<string, bool>();
-
         private string profilesFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles.json");
         public Page1(MainWindow mainWindow)
         {
@@ -29,20 +28,17 @@ namespace TestDownloadPanel
         {
             ProfileGrid.Visibility = Visibility.Visible;
         }
-
         private void SaveProfileButton_Click(object sender, RoutedEventArgs e)
         {
             string profileName = ProfileNameTextBox.Text;
             string loader = (LoaderComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
-            
+            var profile = new { Name = profileName, Loader = loader, Version = "1.19.4" };
 
             if (string.IsNullOrEmpty(profileName) || string.IsNullOrEmpty(loader))
             {
                 MessageBox.Show("Пожалуйста, введите имя профиля и выберите загрузчик модов.");
                 return;
             }
-
-            var profile = new { Name = profileName, Loader = loader, Version = "1.19.4" };
 
             List<dynamic> profiles;
             if (File.Exists(profilesFilePath))
@@ -72,7 +68,6 @@ namespace TestDownloadPanel
                 ProfilesComboBox.ItemsSource = profiles.Select(p => $"{p.Name} ({p.Loader})").ToList();
             }
         }
-
         private void DeleteProfileButton_Click(object sender, RoutedEventArgs e)
         {
             if (ProfilesComboBox.SelectedItem != null)
@@ -96,7 +91,6 @@ namespace TestDownloadPanel
                 MessageBox.Show("Пожалуйста, выберите профиль для удаления.");
             }
         }
-
         private void OpenProfileButton_Click(object sender, RoutedEventArgs e)
         {
             if (ProfilesComboBox.SelectedItem != null)
@@ -125,7 +119,6 @@ namespace TestDownloadPanel
                 MessageBox.Show("Пожалуйста, выберите профиль для открытия.");
             }
         }
-
         private async void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             if (ProfilesComboBox.SelectedItem != null)
