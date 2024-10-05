@@ -126,8 +126,12 @@ namespace TestDownloadPanel
         {
             if (ProfilesComboBox.SelectedItem != null)
             {
-                string selectedProfile = ProfilesComboBox.SelectedItem.ToString();
-                string json = File.ReadAllText(profilesFilePath);
+                string selectedItem = ProfilesComboBox.SelectedItem.ToString();
+                string selectedProfile = selectedItem.Split('(')[0].Trim();
+                string loaderType = selectedItem.Split('(', ')')[1].Trim();
+        
+
+                        string json = File.ReadAllText(profilesFilePath);
                 var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json);
                 var profile = profiles.FirstOrDefault(p => p.Name == selectedProfile);
 
@@ -140,11 +144,12 @@ namespace TestDownloadPanel
                     var minecraftPath = new MinecraftPath(path);
                     var launcher = new MinecraftLauncher(minecraftPath);
 
-                    launcher.FileProgressChanged += (s, a) =>
+                    launcher.ByteProgressChanged += (s, a) =>
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            DownloadProgressBar.Value = a.ProgressedTasks;
+                            DownloadProgressBar.Value = a.ProgressedBytes;
+                            DownloadProgressBar.Maximum = a.TotalBytes;
                         });
                     };
 
@@ -164,10 +169,7 @@ namespace TestDownloadPanel
                     else if (loader == "Forge")
                     {
                         var forgeInstaller = new ForgeInstaller(launcher);
-                        var forgeVer = await forgeInstaller.Install("1.19.4", new ForgeInstallOptions
-                        {
-                            
-                        });
+                        var forgeVer = await forgeInstaller.Install("1.19.4");
 
                         var forgeProcess = await launcher.CreateProcessAsync(forgeVer, launchOption);
                         forgeProcess.Start();

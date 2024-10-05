@@ -40,12 +40,6 @@
     <Reference Include="CmlLib.Core, Version=4.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\CmlLib.Core.4.0.2\lib\netstandard2.0\CmlLib.Core.dll</HintPath>
     </Reference>
-    <Reference Include="CmlLib.Core.Auth.Microsoft, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\CmlLib.Core.Auth.Microsoft.3.2.0\lib\netstandard2.0\CmlLib.Core.Auth.Microsoft.dll</HintPath>
-    </Reference>
-    <Reference Include="CmlLib.Core.Bedrock.Auth, Version=0.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\CmlLib.Core.Bedrock.Auth.0.0.7\lib\netstandard2.0\CmlLib.Core.Bedrock.Auth.dll</HintPath>
-    </Reference>
     <Reference Include="CmlLib.Core.Commons, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\CmlLib.Core.Commons.4.0.0\lib\netstandard2.0\CmlLib.Core.Commons.dll</HintPath>
     </Reference>
@@ -128,12 +122,6 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="XboxAuthNet, Version=3.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\XboxAuthNet.3.0.4\lib\net472\XboxAuthNet.dll</HintPath>
-    </Reference>
-    <Reference Include="XboxAuthNet.Game, Version=1.3.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\XboxAuthNet.Game.1.3.1\lib\netstandard2.0\XboxAuthNet.Game.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
