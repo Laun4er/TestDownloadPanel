@@ -119,6 +119,19 @@ namespace TestDownloadPanel
                 MessageBox.Show("Пожалуйста, выберите профиль для открытия.");
             }
         }
+        public void UpdatePlayButtonState(string profileName, bool isDownloading)
+        {
+            var button = ProfilesComboBox.ItemContainerGenerator.ContainerFromItem(profileName) as ComboBoxItem;
+            if (button != null)
+            {
+                var playButton = FindName("PlayButton") as Button;
+                if (playButton != null)
+                {
+                    playButton.IsEnabled = !isDownloading;
+                    playButton.Content = isDownloading ? "Загрузка" : "Играть";
+                }
+            }
+        }
         private async void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             if (ProfilesComboBox.SelectedItem != null)
@@ -133,6 +146,8 @@ namespace TestDownloadPanel
                     MessageBox.Show("Загрузка этого профиля уже выполняется.");
                     return;
                 }
+
+
 
                 string json = File.ReadAllText(profilesFilePath);
                 var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json);
@@ -161,7 +176,6 @@ namespace TestDownloadPanel
                             mainWindow.UpdateDownloadStatus(selectedProfile, progressPercentage);
                         });
                     };
-
                     var launchOption = new MLaunchOption
                     {
                         Session = MSession.CreateOfflineSession("Laun4er"),
@@ -196,6 +210,7 @@ namespace TestDownloadPanel
 
                     mainWindow.RemoveDownloadStatus(selectedProfile);
                     downloadInProgress[selectedProfile] = false;
+                    UpdatePlayButtonState(selectedProfile, false);
                 }
             }
             else

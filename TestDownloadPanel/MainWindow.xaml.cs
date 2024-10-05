@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,6 +9,7 @@ namespace TestDownloadPanel
     public partial class MainWindow : Window
     {
         private Dictionary<string, Page> pages = new Dictionary<string, Page>();
+        private Dictionary<string, bool> downloadInProgress = new Dictionary<string, bool>();
         public MainWindow()
         {
             InitializeComponent();
@@ -15,7 +17,7 @@ namespace TestDownloadPanel
 
             pageFrame.Content = pages["Main"];
         }
-
+        
         public void ShowDownloadPanel()
         {
             if (DownloadGrid.Visibility == Visibility.Collapsed)
@@ -40,21 +42,26 @@ namespace TestDownloadPanel
             var stackPanel = new StackPanel { Margin = new Thickness(10) };
             var profileNameTextBlock = new TextBlock
             {
-                Text = $"Загрузка: {profileName}",
+                Text = $"Профиль: {profileName}",
                 FontWeight = FontWeights.Bold,
                 Margin = new Thickness(0, 0, 0, 5)
             };
+            var dockPanel = new DockPanel { Margin = new Thickness(0, 0, 0, 5) };
             var progressBar = new ProgressBar
             {
                 Width = 200,
                 Height = 30,
-                Margin = new Thickness(0, 0, 0, 5)
+                Margin = new Thickness(0, 0, 10, 0)
             };
-            var progressPercentageTextBlock = new TextBlock { Margin = new Thickness(0, 0, 0, 5) };
+            var progressPercentageTextBlock = new TextBlock();
+
+            DockPanel.SetDock(progressPercentageTextBlock, Dock.Right);
+            DockPanel.SetDock(progressBar, Dock.Left);
+            dockPanel.Children.Add(progressPercentageTextBlock);
+            dockPanel.Children.Add(progressBar);
 
             stackPanel.Children.Add(profileNameTextBlock);
-            stackPanel.Children.Add(progressBar);
-            stackPanel.Children.Add(progressPercentageTextBlock);
+            stackPanel.Children.Add(dockPanel);
 
             DownloadStackPanel.Children.Add(stackPanel);
 
@@ -74,7 +81,7 @@ namespace TestDownloadPanel
             if (downloadStatus != null)
             {
                 downloadStatus.ProgressBar.Value = progressPercentage;
-                downloadStatus.ProgressTextBlock.Text = $"{progressPercentage}%";
+                downloadStatus.ProgressTextBlock.Text = $"{Math.Round(progressPercentage)}%";
             }
         }
 
