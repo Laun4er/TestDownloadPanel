@@ -141,6 +141,8 @@ namespace TestDownloadPanel
                     string loader = profile.Loader;
 
                     string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles", selectedProfile);
+
+                    DownloadProgressBar.Visibility = Visibility.Visible;
                     var minecraftPath = new MinecraftPath(path);
                     var launcher = new MinecraftLauncher(minecraftPath);
 
@@ -184,6 +186,9 @@ namespace TestDownloadPanel
                         });
                         vanillaProcess.Start();
                     }
+
+                    DownloadProgressBar.Value = 0;
+                    DownloadProgressBar.Visibility = Visibility.Collapsed;
                 }
             }
             else

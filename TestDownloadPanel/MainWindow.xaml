@@ -27,6 +27,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
+            
+            
         </Grid>
 
         <Frame Grid.Row="1" x:Name="pageFrame"/>
