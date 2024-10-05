@@ -1,6 +1,5 @@
 ﻿using CmlLib.Core;
 using CmlLib.Core.Auth;
-using CmlLib.Core.Installer.Forge;
 using CmlLib.Core.ModLoaders.FabricMC;
 using CmlLib.Core.ProcessBuilder;
 using Newtonsoft.Json;
@@ -15,10 +14,13 @@ namespace TestDownloadPanel
 {
     public partial class Page1 : Page
     {
+        private MainWindow mainWindow;
+
         private string profilesFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles.json");
-        public Page1()
+        public Page1(MainWindow mainWindow)
         {
             InitializeComponent();
+            this.mainWindow = mainWindow;
             LoadProfiles();
         }
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
@@ -131,7 +133,7 @@ namespace TestDownloadPanel
                 string loaderType = selectedItem.Split('(', ')')[1].Trim();
         
 
-                        string json = File.ReadAllText(profilesFilePath);
+                string json = File.ReadAllText(profilesFilePath);
                 var profiles = JsonConvert.DeserializeObject<List<dynamic>>(json);
                 var profile = profiles.FirstOrDefault(p => p.Name == selectedProfile);
 
@@ -146,12 +148,14 @@ namespace TestDownloadPanel
                     var minecraftPath = new MinecraftPath(path);
                     var launcher = new MinecraftLauncher(minecraftPath);
 
+                    mainWindow.AddDownloadStatus(selectedProfile);
+
                     launcher.ByteProgressChanged += (s, a) =>
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            DownloadProgressBar.Value = a.ProgressedBytes;
-                            DownloadProgressBar.Maximum = a.TotalBytes;
+                            double progressPercentage = (a.ProgressedBytes / (double)a.TotalBytes) * 100;
+                            mainWindow.UpdateDownloadStatus(selectedProfile, progressPercentage);
                         });
                     };
 
@@ -187,8 +191,7 @@ namespace TestDownloadPanel
                         vanillaProcess.Start();
                     }
 
-                    DownloadProgressBar.Value = 0;
-                    DownloadProgressBar.Visibility = Visibility.Collapsed;
+                    mainWindow.RemoveDownloadStatus(selectedProfile);
                 }
             }
             else

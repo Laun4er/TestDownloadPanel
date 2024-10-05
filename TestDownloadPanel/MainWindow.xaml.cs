@@ -11,32 +11,82 @@ namespace TestDownloadPanel
         public MainWindow()
         {
             InitializeComponent();
-            pages.Add("Main", new Page1());
+            pages.Add("Main", new Page1(this));
 
             pageFrame.Content = pages["Main"];
         }
-
-        private void Close_Click(object sender, RoutedEventArgs e)
+        private void ShowDownloadsButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
-        }
-
-        private void Maximize_Click(object sender, RoutedEventArgs e)
-        {
-            switch (this.WindowState)
+            if(DownloadGrid.Visibility == Visibility.Visible)
             {
-                case WindowState.Maximized:
-                    this.WindowState = WindowState.Normal;
-                    break;
-                case WindowState.Normal:
-                    this.WindowState = WindowState.Maximized;
-                    break;
+                DownloadGrid.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                DownloadGrid.Visibility = Visibility.Visible;
             }
         }
 
-        private void Minimize_Click(object sender, RoutedEventArgs e)
+        public void AddDownloadStatus(string profileName)
         {
-            this.WindowState = WindowState.Minimized;
+            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+            var profileNameTextBlock = new TextBlock
+            {
+                Text = $"Загрузка: {profileName}",
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(0, 0, 0, 5)
+            };
+            var progressBar = new ProgressBar
+            {
+                Width = 200,
+                Height = 30,
+                Margin = new Thickness(0, 0, 0, 5)
+            };
+            var progressPercentageTextBlock = new TextBlock { Margin = new Thickness(0, 0, 0, 5) };
+
+            stackPanel.Children.Add(profileNameTextBlock);
+            stackPanel.Children.Add(progressBar);
+            stackPanel.Children.Add(progressPercentageTextBlock);
+
+            DownloadStackPanel.Children.Add(stackPanel);
+
+            var downloadStatus = new DownloadStatus
+            {
+                ProfileName = profileName,
+                ProgressBar = progressBar,
+                ProgressTextBlock = progressPercentageTextBlock
+            };
+
+            DownloadStatuses.Add(downloadStatus);
+        }
+
+        public void UpdateDownloadStatus(string profileName, double progressPercentage)
+        {
+            var downloadStatus = DownloadStatuses.FirstOrDefault(ds => ds.ProfileName == profileName);
+            if (downloadStatus != null)
+            {
+                downloadStatus.ProgressBar.Value = progressPercentage;
+                downloadStatus.ProgressTextBlock.Text = $"{progressPercentage}%";
+            }
+        }
+
+        public void RemoveDownloadStatus(string profileName)
+        {
+            var downloadStatus = DownloadStatuses.FirstOrDefault(ds => ds.ProfileName == profileName);
+            if (downloadStatus != null)
+            {
+                DownloadStackPanel.Children.Remove(downloadStatus.ProgressBar.Parent as UIElement);
+                DownloadStatuses.Remove(downloadStatus);
+            }
+        }
+
+        private List<DownloadStatus> DownloadStatuses = new List<DownloadStatus>();
+
+        public class DownloadStatus
+        {
+            public string ProfileName { get; set; }
+            public ProgressBar ProgressBar { get; set; }
+            public TextBlock ProgressTextBlock { get; set; }
         }
     }
 }

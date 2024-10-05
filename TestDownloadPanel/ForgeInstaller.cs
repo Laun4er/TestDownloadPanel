@@ -1,16 +1,14 @@
-﻿using CmlLib.Core.Installer.Forge.Versions;
+﻿using CmlLib.Core;
 using CmlLib.Core.Installer.Forge;
+using CmlLib.Core.Installer.Forge.Versions;
 using CmlLib.Core.Installers;
 using CmlLib.Core.Version;
-using CmlLib.Core;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace TestDownloadPanel
 {

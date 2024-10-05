@@ -27,10 +27,18 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
-            
-            
+
+            <!-- Кнопка для показа панели загрузок -->
+            <Button Content="Показать загрузки" Width="150" Height="30" Click="ShowDownloadsButton_Click" Grid.Column="0"/>
         </Grid>
 
         <Frame Grid.Row="1" x:Name="pageFrame"/>
+
+        <!-- Панель загрузок -->
+        <Grid Name="DownloadGrid" Visibility="Collapsed" Grid.Row="1">
+            <StackPanel Name="DownloadStackPanel" Orientation="Vertical" HorizontalAlignment="Left">
+                <Label x:Name="EmptyDownloads">Здесь пока ничего нет :3</Label>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
